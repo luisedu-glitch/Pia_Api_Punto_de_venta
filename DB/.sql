@@ -1,55 +1,111 @@
-CREATE TABLE `productos` (
-  `idproductos` date NOT NULL,
-  `descripcion` varchar(45) NOT NULL,
-  `precio` date NOT NULL,
-  `existencias` date NOT NULL,
-  `unidad` date NOT NULL,
-  `imagen_de_producto` varchar(45) NOT NULL,
-  PRIMARY KEY (`idproductos`)
+-- =====================================================
+-- 2. TABLA PRODUCTOS
+-- =====================================================
+
+CREATE TABLE productos (
+    idproductos INT NOT NULL AUTO_INCREMENT,
+    descripcion VARCHAR(100) NOT NULL,
+    precio DECIMAL(10,2) NOT NULL,
+    existencias INT NOT NULL,
+    unidad VARCHAR(45) NOT NULL,
+    imagen_de_producto MEDIUMBLOB NULL,
+    status INT NOT NULL DEFAULT 1,
+    PRIMARY KEY (idproductos)
 );
 
-CREATE TABLE `usuario` (
-  `Correo` varchar(50) NOT NULL,
-  `direccion` varchar(45) DEFAULT NULL,
-  `alias` varchar(45) NOT NULL,
-  `telefono` date DEFAULT NULL,
-  `apelldio` varchar(45) NOT NULL,
-  `fecha_de_nacimiento` date NOT NULL,
-  `imagen_de_usuario` blob NOT NULL,
-  `contrasena` varchar(50) NOT NULL,
-  PRIMARY KEY (`Correo`)
+
+-- =====================================================
+-- 3. TABLA USUARIO
+-- =====================================================
+
+CREATE TABLE usuario (
+    id_usuario INT NOT NULL AUTO_INCREMENT,
+    usuario VARCHAR(50) NOT NULL,
+    Correo VARCHAR(50) NOT NULL,
+    direccion VARCHAR(45) DEFAULT NULL,
+    alias VARCHAR(45) NOT NULL,
+    telefono VARCHAR(20) DEFAULT NULL,
+    apellido VARCHAR(45) NOT NULL,
+    fecha_de_nacimiento DATE NOT NULL,
+    imagen_de_usuario MEDIUMBLOB NULL,
+    contrasena VARCHAR(255) NOT NULL,
+    status INT NOT NULL DEFAULT 1,
+    PRIMARY KEY (id_usuario),
+    UNIQUE (Correo),
+    UNIQUE (usuario)
 );
 
-CREATE TABLE `usuario_venta` (
-  `correo_usuario` varchar(50) NOT NULL,
-  `ticket_venta` date NOT NULL,
-  KEY `correo_usuario_idx` (`correo_usuario`),
-  KEY `ticket_venta_idx` (`ticket_venta`),
-  CONSTRAINT `correo_usuario` 
-	  FOREIGN KEY (`correo_usuario`)
-           REFERENCES `usuario` (`Correo`),
-  CONSTRAINT `ticket_venta` 
-		FOREIGN KEY (`ticket_venta`) 
-				REFERENCES `venta` (`ticket`)
+
+-- =====================================================
+-- 4. TABLA CAJA
+-- =====================================================
+
+CREATE TABLE caja (
+    id_caja INT NOT NULL AUTO_INCREMENT,
+    numero_caja INT NOT NULL UNIQUE,
+    descripcion VARCHAR(100) NOT NULL,
+    estatus INT NOT NULL DEFAULT 1,
+    PRIMARY KEY (id_caja)
 );
 
-CREATE TABLE `venta` (
-  `ticket` date NOT NULL,
-  `total` date NOT NULL,
-  `reporte` varchar(45) NOT NULL,
-  `Rango` date NOT NULL,
-  `numero_de_caja` date NOT NULL,
-  `producto` varchar(45) NOT NULL,
-  PRIMARY KEY (`ticket`)
+
+-- =====================================================
+-- 5. TABLA VENTA
+-- =====================================================
+
+CREATE TABLE venta (
+    ticket INT NOT NULL AUTO_INCREMENT,
+    total DECIMAL(10,2) NOT NULL,
+    reporte VARCHAR(45) NOT NULL,
+    Rango VARCHAR(45) NOT NULL,
+    numero_de_caja INT NOT NULL,
+    producto VARCHAR(45) NOT NULL,
+    PRIMARY KEY (ticket),
+
+    CONSTRAINT fk_venta_caja
+    FOREIGN KEY (numero_de_caja)
+    REFERENCES caja(numero_caja)
 );
 
-CREATE TABLE `detalle_venta` (
-  `fk_detalle_ticket` date NOT NULL,
-  `ID_producto` date NOT NULL,
-  `cantidad` date NOT NULL,
-  `precio_unitario` date NOT NULL,
-  KEY `ticket_venta_idx` (`fk_detalle_ticket`),
-  KEY `ID_producto_idx` (`ID_producto`),
-  CONSTRAINT `fk_detalle_ticket` FOREIGN KEY (`fk_detalle_ticket`) REFERENCES `venta` (`ticket`),
-  CONSTRAINT `ID_producto` FOREIGN KEY (`ID_producto`) REFERENCES `productos` (`idproductos`)
+
+-- =====================================================
+-- 6. TABLA USUARIO_VENTA
+-- =====================================================
+
+CREATE TABLE usuario_venta (
+    id_usuario INT NOT NULL,
+    ticket_venta INT NOT NULL,
+
+    PRIMARY KEY (id_usuario, ticket_venta),
+
+    CONSTRAINT fk_usuario_venta_usuario
+    FOREIGN KEY (id_usuario)
+    REFERENCES usuario(id_usuario),
+
+    CONSTRAINT fk_usuario_venta_ticket
+    FOREIGN KEY (ticket_venta)
+    REFERENCES venta(ticket)
+);
+
+
+-- =====================================================
+-- 7. TABLA DETALLE_VENTA
+-- =====================================================
+
+CREATE TABLE detalle_venta (
+    id_detalle INT NOT NULL AUTO_INCREMENT,
+    fk_detalle_ticket INT NOT NULL,
+    ID_producto INT NOT NULL,
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10,2) NOT NULL,
+
+    PRIMARY KEY (id_detalle),
+
+    CONSTRAINT fk_detalle_venta_ticket
+    FOREIGN KEY (fk_detalle_ticket)
+    REFERENCES venta(ticket),
+
+    CONSTRAINT fk_detalle_venta_producto
+    FOREIGN KEY (ID_producto)
+    REFERENCES productos(idproductos)
 );
