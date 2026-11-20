@@ -121,7 +121,6 @@ def obtener_producto(idproductos):
 # =====================================================
 
 @producto_bp.put("/productos/<int:idproductos>")
-@jwt_required()
 def actualizar_producto(idproductos):
 
     descripcion = request.form.get("descripcion")
