@@ -39,7 +39,7 @@ El proyecto cuenta con las siguientes tablas principales en MySQL:
 PIA_API/
 ├── .venv/                  # Entorno virtual de Python
 ├── config/                 # Configuración del proyecto y base de datos
-├── Controller/             # Capa de controladores (manejo de peticiones HTTP)
+├── controller/             # Capa de controladores (manejo de peticiones HTTP)
 │   ├── auth_controller.py
 │   ├── producto_controller.py
 │   ├── reporte_controller.py
@@ -56,7 +56,7 @@ PIA_API/
 │   ├── reporte_repository.py
 │   ├── usuario_repository.py
 │   └── venta_repository.py
-├── services/               # Capa de servicios (lógica de negocio)
+├── servicios/              # Capa de servicios (lógica de negocio)
 │   ├── producto_service.py
 │   ├── reporte_service.py
 │   ├── usuario_service.py
