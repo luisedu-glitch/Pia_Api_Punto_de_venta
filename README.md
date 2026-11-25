@@ -72,7 +72,6 @@ PIA_API/
 ```
 
 ## 7. Uso
-7. Uso
 ## Endpoints de la API
 
 A continuación se detallan los endpoints implementados en la API, indicando el método HTTP, la ruta, su función y si requieren autenticación mediante Token (JWT).
