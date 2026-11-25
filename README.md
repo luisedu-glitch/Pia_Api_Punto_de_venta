@@ -76,6 +76,7 @@ A continuación se detallan los endpoints implementados en la API, indicando el 
 ### Gestión de Usuarios 
 *   `GET /usuarios`: Obtiene la lista de todos los usuarios registrados. *(Requiere Token)*
 *   `GET /usuarios/{id_usuario}`: Obtiene un usuario específico por su ID. *(Requiere Token)*
+*    `POST/usuarios `:Registra un nuevo usuario (sporta imagen)  *(Requiere Token)*
 *   `PUT /usuarios/{id_usuario}`: Actualiza los datos de un usuario existente. *(Requiere Token)*
 
 ### Gestión de Productos 

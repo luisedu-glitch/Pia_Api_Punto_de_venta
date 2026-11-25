@@ -1,66 +1,156 @@
 from config.database import get_conn
-import uuid
+from decimal import Decimal
 from models.venta_model import Venta
 
+
 class VentaRepository:
+
+    # =====================================================
+    # EJECUTAR SP Y OBTENER UN REGISTRO
+    # =====================================================
     @staticmethod
-    def registrar_venta(id_usuario, id_caja, productos):
+    def _call_fetchone(cursor, sp, params):
+        cursor.callproc(sp, params)
+
+        resultado = None
+
+        for result in cursor.stored_results():
+            resultado = result.fetchone()
+
+        return resultado
+
+
+    # =====================================================
+    # REGISTRAR VENTA
+    # =====================================================
+    @staticmethod
+    def registrar_venta(
+        id_usuario,
+        numero_de_caja,
+        productos,
+        reporte,
+        rango
+    ):
         conn = get_conn()
         cursor = conn.cursor(dictionary=True)
+
         try:
             conn.start_transaction()
 
-            total_venta = 0
+            total_venta = Decimal("0.00")
             detalles_procesados = []
+            nombres_productos = []
 
+            # 1. VALIDAR USUARIO
+            usuario = VentaRepository._call_fetchone(
+                cursor, "sp_venta_validar_usuario", [id_usuario]
+            )
+
+            if not usuario:
+                raise Exception("El usuario no existe.")
+
+            if usuario["status"] != 1:
+                raise Exception("El usuario se encuentra inactivo.")
+
+            # 2. VALIDAR CAJA
+            caja = VentaRepository._call_fetchone(
+                cursor, "sp_venta_validar_caja", [numero_de_caja]
+            )
+
+            if not caja:
+                raise Exception("La caja no existe.")
+
+            if caja["estatus"] != 1:
+                raise Exception("La caja se encuentra inactiva.")
+
+            # 3. VALIDAR PRODUCTOS
             for item in productos:
-                id_prod = item['id_producto']
-                cant = item['cantidad']
 
-                cursor.execute("SELECT id_producto, precio, existencias FROM productos WHERE id_producto = %s FOR UPDATE", (id_prod,))
-                prod = cursor.fetchone()
+                id_prod = item["id_producto"]
+                cant = int(item["cantidad"])
+
+                if cant <= 0:
+                    raise Exception("La cantidad debe ser mayor que cero.")
+
+                prod = VentaRepository._call_fetchone(
+                    cursor, "sp_venta_obtener_producto", [id_prod]
+                )
 
                 if not prod:
                     raise Exception(f"El producto con ID {id_prod} no existe.")
-                if prod['existencias'] < cant:
-                    raise Exception("Existencias insuficientes")
 
-                precio_unitario = float(prod['precio'])
+                if prod["status"] != 1:
+                    raise Exception(f"El producto {id_prod} está inactivo.")
+
+                if prod["existencias"] < cant:
+                    raise Exception(
+                        f"Existencias insuficientes para {prod['descripcion']}."
+                    )
+
+                precio_unitario = Decimal(str(prod["precio"]))
                 importe = precio_unitario * cant
                 total_venta += importe
 
                 detalles_procesados.append({
-                    'id_producto': id_prod,
-                    'cantidad': cant,
-                    'precio_unitario': precio_unitario,
-                    'importe': importe,
-                    'nuevas_existencias': prod['existencias'] - cant
+                    "id_producto": id_prod,
+                    "cantidad": cant,
+                    # CAMBIO: float para que el JSON no falle con Decimal
+                    "precio_unitario": float(precio_unitario)
                 })
 
-            folio = f"V-{uuid.uuid4().hex[:8].upper()}"
-            query_venta = """
-                INSERT INTO ventas (folio, id_usuario, id_caja, fecha_venta, total)
-                VALUES (%s, %s, %s, NOW(), %s)
-            """
-            cursor.execute(query_venta, (folio, id_usuario, id_caja, total_venta))
-            id_venta = cursor.lastrowid
+                nombres_productos.append(prod["descripcion"])
 
-            query_detalle = """
-                INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario, importe)
-                VALUES (%s, %s, %s, %s, %s)
-            """
-            query_stock = "UPDATE productos SET existencias = %s WHERE id_producto = %s"
+            # 4. DESCRIPCIÓN DE PRODUCTOS
+            descripcion_productos = ", ".join(nombres_productos)[:45]
 
-            for d in detalles_procesados:
-                cursor.execute(query_detalle, (id_venta, d['id_producto'], d['cantidad'], d['precio_unitario'], d['importe']))
-                cursor.execute(query_stock, (d['nuevas_existencias'], d['id_producto']))
+            # 5. CREAR VENTA
+            resultado_venta = VentaRepository._call_fetchone(
+                cursor,
+                "sp_venta_crear",
+                [
+                    total_venta,
+                    reporte,
+                    rango,
+                    numero_de_caja,
+                    descripcion_productos,
+                    id_usuario
+                ]
+            )
 
+            if not resultado_venta:
+                raise Exception("No se pudo obtener el ticket de la venta.")
+
+            ticket = resultado_venta["ticket"]
+
+            # 6. AGREGAR DETALLES
+            for detalle in detalles_procesados:
+                cursor.callproc(
+                    "sp_venta_agregar_detalle",
+                    [
+                        ticket,
+                        detalle["id_producto"],
+                        detalle["cantidad"],
+                        detalle["precio_unitario"]
+                    ]
+                )
+
+                for result in cursor.stored_results():
+                    result.fetchall()
+
+            # 7. CONFIRMAR
             conn.commit()
-            return {"id_venta": id_venta, "folio": folio, "total": total_venta}
 
-        except Exception as e:
+            return {
+                "ticket": ticket,
+                "total": float(total_venta),
+                "numero_de_caja": numero_de_caja,
+                "productos": detalles_procesados
+            }
+
+        except Exception:
             conn.rollback()
-            raise e
+            raise
+
         finally:
             cursor.close()
             conn.close()
