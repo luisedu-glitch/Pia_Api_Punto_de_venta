@@ -36,35 +36,38 @@ El proyecto cuenta con las siguientes tablas principales en MySQL:
 - **`detalle_venta`**: `id_detalle`, `fk_detalle_ticket`, `id_producto`, `cantidad`, `precio_unitario`.
 - **`usuario_venta`**: Tabla intermedia para relacionar usuarios y ventas.
 6. Arquitectura y Estructura del Proyecto
-PIA_API/
-├── .venv/                  # Entorno virtual de Python
-├── config/                 # Configuración del proyecto y base de datos
-├── controller/             # Capa de controladores (manejo de peticiones HTTP)
-│   ├── auth_controller.py
-│   ├── producto_controller.py
-│   ├── reporte_controller.py
-│   ├── usuario_controller.py
-│   └── venta_controller.py
-├── DB/                     # Scripts o conexión a la base de datos
-├── models/                 # Capa de modelos (estructura de los datos)
-│   ├── producto_model.py
-│   ├── reporte_model.py
-│   ├── usuario_model.py
-│   └── venta_model.py
-├── repositorie/            # Capa de repositorios (consultas SQL a la BD)
-│   ├── producto_repository.py
-│   ├── reporte_repository.py
-│   ├── usuario_repository.py
-│   └── venta_repository.py
-├── servicios/              # Capa de servicios (lógica de negocio)
-│   ├── producto_service.py
-│   ├── reporte_service.py
-│   ├── usuario_service.py
-│   └── venta_service.py
-├── .env                    # Variables de entorno (credenciales protegidas)
-├── .gitignore              # Archivos ignorados por Git
-├── app.py                  # Punto de entrada de la aplicación Flask
-└── README.md               # Documentación del proyecto
+6. Arquitectura y Estructura del Proyecto
+
+   PIA_API/
+   ├── .venv/                  # Entorno virtual de Python
+   ├── config/                 # Configuración del proyecto y base de datos
+   ├── controller/             # Capa de controladores (manejo de peticiones HTTP)
+   │   ├── auth_controller.py
+   │   ├── producto_controller.py
+   │   ├── reporte_controller.py
+   │   ├── usuario_controller.py
+   │   └── venta_controller.py
+   ├── DB/                     # Scripts o conexión a la base de datos
+   ├── models/                 # Capa de modelos (estructura de los datos)
+   │   ├── producto_model.py
+   │   ├── reporte_model.py
+   │   ├── usuario_model.py
+   │   └── venta_model.py
+   ├── repositorie/            # Capa de repositorios (consultas SQL a la BD)
+   │   ├── producto_repository.py
+   │   ├── reporte_repository.py
+   │   ├── usuario_repository.py
+   │   └── venta_repository.py
+   ├── servicios/              # Capa de servicios (lógica de negocio)
+   │   ├── producto_service.py
+   │   ├── reporte_service.py
+   │   ├── usuario_service.py
+   │   └── venta_service.py
+   ├── .env                    # Variables de entorno (credenciales protegidas)
+   ├── .gitignore              # Archivos ignorados por Git
+   ├── app.py                  # Punto de entrada de la aplicación Flask
+   └── README.md               # Documentación del proyecto
+
 7. Uso
 ## Endpoints de la API
 
